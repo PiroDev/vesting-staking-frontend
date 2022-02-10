@@ -2,7 +2,7 @@
   <div class="h-full flex justify-between">
       <div class="w-1/3"></div>
       <div class="w-1/3 flex justify-center items-center">
-        <div class="text-2xl">Staking App</div>
+        <div class="text-2xl font-semibold">Staking App</div>
       </div>
       <div class="w-1/3 flex justify-center">
         <user-wallet/>
