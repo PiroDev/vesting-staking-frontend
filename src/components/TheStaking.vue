@@ -5,7 +5,13 @@
     </div>
     <div class="h-4/6 w-full flex flex-col justify-around">
       <div class="h-3/6 flex justify-around">
-        <div v-for="staking in stakingStrategies" class="w-1/3 flex flex-col justify-around rounded-3xl px-6 shadow-lg ">
+        <div
+            v-for="staking in stakingStrategies"
+            key="{{staking.id}}"
+            class="w-1/3 flex flex-col justify-around rounded-3xl px-6 shadow-lg select-none hover:cursor-pointer"
+            :class="{ 'bg-selection-color': isSelected(staking.id) }"
+            @click="selectStrategy(staking.id)"
+        >
           <div class="text-2xl font-bold">{{ staking.days }} Days</div>
           <div class="text-[#db5f54] font-bold">APY: {{ staking.apy }}</div>
           <div>{{ staking.vesting }}</div>
@@ -29,13 +35,13 @@
 
     </div>
     <div class="h-1/6 w-full flex justify-between items-center">
-      <div class="w-1/5 h-2/3 flex justify-center items-center bg-main-color rounded-xl" v-if="isWalletConnected">
+      <div class="w-1/5 h-2/3 flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none" v-if="isWalletConnected">
         Stake
       </div>
-      <div class="w-1/5 h-2/3 flex justify-center items-center bg-main-color rounded-xl" v-else @click="connectWallet">
+      <div class="w-1/5 h-2/3 flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none" v-else @click="connectWallet">
         Connect wallet
       </div>
-      <div class="w-1/5 h-2/3 flex justify-center items-center border border-gray-200 rounded-xl">View Contract</div>
+      <div class="w-1/5 h-2/3 flex justify-center items-center border border-gray-200 rounded-xl hover:cursor-pointer select-none">View Contract</div>
     </div>
   </div>
 </template>
@@ -47,10 +53,11 @@ export default {
   data() {
     return {
       stakingStrategies: [
-        {days: 30, apy: '125.3%', vesting: 'Linear vesting strategy: 10 days cliff with 20 days vesting'},
-        {days: 60, apy: '227.8%', vesting: 'Linear vesting strategy: 20 days cliff with 40 days vesting'},
+        {id: 1, days: 30, apy: '125.3%', vesting: 'Linear vesting strategy: 10 days cliff with 20 days vesting'},
+        {id: 2, days: 60, apy: '227.8%', vesting: 'Linear vesting strategy: 20 days cliff with 40 days vesting'},
       ],
-      stake: 100
+      stake: 100,
+      selectedStrategy: 1
     }
   },
   computed: {
@@ -65,8 +72,13 @@ export default {
     ]),
     connectWallet() {
       this.connectMetamask()
-          .then(() => this.updateUserBalance().then(res => {})
-          );
+          .then(() => this.updateUserBalance());
+    },
+    isSelected(id) {
+      return this.isWalletConnected && this.selectedStrategy === id;
+    },
+    selectStrategy(id) {
+      this.selectedStrategy = id;
     }
   }
 }

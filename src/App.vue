@@ -1,5 +1,5 @@
 <template>
-  <div class="h-12 px-10 py-1 border-b border-b-white bg-main-color-light">
+  <div class="h-16 px-10 py-1 border-b border-b-white bg-main-color-light">
     <the-header/>
   </div>
 

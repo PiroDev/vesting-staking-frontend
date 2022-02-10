@@ -7,8 +7,9 @@ import {abi as stakingAbi} from '/src/abi/Staking.json';
 export default createStore({
     state: () => ({
         wallet: {
-          address: null,
-          balance: 0,
+            address: null,
+            balance: 0,
+            isBalanceLoaded: false
         },
         token: {
             symbol: 'CRT',
@@ -25,6 +26,10 @@ export default createStore({
         },
         setWalletBalance(state, balance) {
             state.wallet.balance = balance;
+            state.wallet.isBalanceLoaded = true;
+        },
+        setBalanceToNotLoaded(state) {
+            state.wallet.isBalanceLoaded = false;
         }
     },
     actions: {
@@ -34,14 +39,17 @@ export default createStore({
                 return;
             }
 
-            return ethereum.request({ method: 'eth_requestAccounts' })
+            return ethereum.request({method: 'eth_requestAccounts'})
                 .then(res => commit('setWalletAddress', res[0]))
                 .catch(err => console.log(err));
         },
         async logout({commit}) {
             commit('setWalletAddress', null);
+            commit('setBalanceToNotLoaded');
         },
         async updateUserBalance({state, commit}) {
+            commit('setBalanceToNotLoaded');
+
             const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
             const rewardToken = new ethers.Contract(
                 state.token.address,
