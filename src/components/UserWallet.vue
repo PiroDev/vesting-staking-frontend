@@ -21,8 +21,8 @@ export default {
   computed: {
     ...mapState({
       wallet: state => state.wallet,
-      tokenSymbol: state => state.token.symbol,
-      isBalanceLoaded: state => state.wallet.isBalanceLoaded
+      tokenSymbol: state => state.rewardToken.symbol,
+      isBalanceLoaded: state => state.wallet.isLoaded
     }),
     ...mapGetters([
        'isWalletConnected'

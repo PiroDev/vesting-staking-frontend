@@ -17,9 +17,18 @@
 <script>
 import TheHeader from "/src/components/TheHeader.vue";
 import TheStaking from "/src/components/TheStaking.vue";
+import {mapActions} from "vuex";
 
 export default {
-  components: {TheStaking, TheHeader}
+  components: {TheStaking, TheHeader},
+  async mounted() {
+    await this.loadContractsInfo();
+  },
+  methods: {
+    ...mapActions([
+      'loadContractsInfo'
+    ])
+  }
 }
 </script>
 

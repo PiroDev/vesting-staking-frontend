@@ -6,15 +6,15 @@
     <div class="h-4/6 w-full flex flex-col justify-around">
       <div class="h-3/6 flex justify-around">
         <div
-            v-for="staking in stakingStrategies"
+            v-for="staking in $store.state.stakingStrategies"
             key="{{staking.id}}"
             class="w-1/3 flex flex-col justify-around rounded-3xl px-6 shadow-lg select-none hover:cursor-pointer"
             :class="{ 'bg-selection-color': isSelected(staking.id) }"
             @click="selectStrategy(staking.id)"
         >
-          <div class="text-2xl font-bold">{{ staking.days }} Days</div>
-          <div class="text-[#db5f54] font-bold">APY: {{ staking.apy }}</div>
-          <div>{{ staking.vesting }}</div>
+          <div class="text-2xl font-bold">{{ staking.duration }} Days</div>
+          <div class="text-[#db5f54] font-bold">APY: -</div>
+          <div>Linear vesting with {{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} vesting period</div>
         </div>
       </div>
 
@@ -52,10 +52,6 @@ import {mapActions, mapGetters} from 'vuex';
 export default {
   data() {
     return {
-      stakingStrategies: [
-        {id: 1, days: 30, apy: '125.3%', vesting: 'Linear vesting strategy: 10 days cliff with 20 days vesting'},
-        {id: 2, days: 60, apy: '227.8%', vesting: 'Linear vesting strategy: 20 days cliff with 40 days vesting'},
-      ],
       stake: 100,
       selectedStrategy: 1
     }
