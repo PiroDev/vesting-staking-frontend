@@ -13,7 +13,10 @@
             @click="selectStrategy(staking.id)"
         >
           <div class="text-2xl font-bold">{{ staking.duration }} Days</div>
-          <div class="text-[#db5f54] font-bold">Rewards pool (daily): {{ staking.rewardsPerDay + ' ' + tokenSymbol }}</div>
+          <div class="text-[#db5f54] font-bold">Rewards pool (daily): {{
+              staking.rewardsPerDay + ' ' + tokenSymbol
+            }}
+          </div>
           <div class="text-[#db5f54] font-bold">APY: {{ calcAPY[staking.id - 1] }}</div>
           <div>Linear vesting with {{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} vesting
             period
@@ -27,7 +30,7 @@
                  class="w-full border border-gray-200 pl-2 py-3 rounded-lg focus:outline-none">
         </div>
         <div class="h-1/4 flex items-center">
-          <div>Reward for {{ stakingStrategies[selectedStrategy - 1].duration }} days (with current APY):</div>
+          <div>Reward for {{ stakingStrategies[selectedStrategy - 1].duration }} days (with current TVL):</div>
           <div class="text-[#db5f54] text-lg font-bold ml-2">{{ calcRewardsPerMonth[selectedStrategy - 1] }}</div>
         </div>
       </div>
@@ -59,6 +62,8 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
+import {BNToNumstr, numstrToBN} from "/src/utils/formatting.js";
+import {BigNumber} from "ethers";
 
 export default {
   data() {
@@ -82,8 +87,20 @@ export default {
         apys = '-'.repeat(this.stakingStrategies.length).split('');
       } else {
         this.stakingStrategies.forEach(staking => {
-          const newTvl = staking.tvl + this.stake;
-          const apy = newTvl > 0 ? (staking.rewardsPerDay * 365 * 100 / newTvl).toString() + '%' : '-';
+          let newTvl = staking.tvl + this.stake;
+
+          if (newTvl <= 0) {
+            newTvl = 0;
+          }
+
+          let apy = null;
+          try {
+            apy = numstrToBN((staking.rewardsPerDay * 365 * 100 / newTvl).toString());
+            apy = BNToNumstr(apy) + '%';
+          } catch {
+            apy = '0%';
+          }
+
           apys.push(apy);
         });
       }
@@ -97,8 +114,18 @@ export default {
         rpms = '-'.repeat(this.stakingStrategies.length).split('');
       } else {
         this.stakingStrategies.forEach(staking => {
-          const newTvl = staking.tvl + this.stake;
-          const rpm = newTvl > 0 ? (staking.rewardsPerDay * 31 * 100 / newTvl).toString() + ' ' + this.tokenSymbol : '-';
+          let newTvl = staking.tvl + this.stake;
+          if (newTvl <= 0) {
+            newTvl = 0;
+          }
+
+          let rpm = null;
+          try {
+            rpm = numstrToBN((staking.rewardsPerDay * 31 * this.stake / newTvl).toString());
+            rpm = BNToNumstr(rpm) + ' ' + this.tokenSymbol;
+          } catch {
+            rpm = '0 ' + this.tokenSymbol;
+          }
           rpms.push(rpm);
         });
       }

@@ -2,7 +2,7 @@
   <div class="h-full w-96 flex justify-between items-center bg-white rounded-xl" v-if="isWalletConnected">
     <div class="w-5/6 flex justify-between items-center">
       <div class="w-1/2 text-center select-all">{{ slicedUserAddress }}</div>
-      <div class="w-5/12 text-center select-all">{{ isBalanceLoaded ? wallet.balance + ' ' + tokenSymbol : 'Fetching balance...' }}</div>
+      <div class="w-5/12 text-center select-all">{{ userBalance }}</div>
     </div>
     <div class="w-1/6 h-2/3 flex justify-center items-center">
       <img src="/src/assets/logout.svg" alt="X" class="h-full hover:cursor-pointer" @click="logout">
@@ -16,12 +16,13 @@
 
 <script>
 import {mapState, mapActions, mapGetters} from 'vuex';
+import {BNToNumstr} from '/src/utils/formatting.js';
 
 export default {
   computed: {
     ...mapState({
       wallet: state => state.wallet,
-      tokenSymbol: state => state.rewardToken.symbol,
+      token: state => state.rewardToken,
       isBalanceLoaded: state => state.wallet.isLoaded
     }),
     ...mapGetters([
@@ -30,6 +31,14 @@ export default {
     slicedUserAddress() {
       const {address} = this.wallet;
       return address.slice(0, 6) + '...' + address.slice(-4);
+    },
+    userBalance() {
+      if (this.isBalanceLoaded === false) {
+        return 'Fetching balance...';
+      } else {
+        const balance = BNToNumstr(this.wallet.balance, this.token.decimals);
+        return balance + ' ' + this.token.symbol;
+      }
     }
   },
   methods: {

@@ -9,12 +9,12 @@ export default createStore({
     state: () => ({
         wallet: {
             address: null,
-            balance: 0,
+            balance: null,
             isLoaded: false
         },
         rewardToken: {
-            symbol: 'CRT',
-            decimals: 18
+            symbol: null,
+            decimals: null
         },
         stakingStrategies: null
     }),
@@ -34,6 +34,9 @@ export default createStore({
         },
         setStakingStrategies(state, stakingStrategies) {
             state.stakingStrategies = stakingStrategies;
+        },
+        setRewardToken(state, rewardToken) {
+            state.rewardToken = rewardToken;
         }
     },
     actions: {
@@ -51,7 +54,7 @@ export default createStore({
             commit('setWalletAddress', null);
             commit('setBalanceToNotLoaded');
         },
-        async updateUserBalance({state, commit}) {
+        async updateUserBalance({state, commit, dispatch}) {
             commit('setBalanceToNotLoaded');
 
             const provider = new ethers.providers.JsonRpcProvider(rewardTokenInfo.provider);
@@ -61,13 +64,14 @@ export default createStore({
                 provider
             );
 
+            await dispatch('loadTokenInfo');
+
             return rewardTokenContract.balanceOf(state.wallet.address)
-                .then(res => commit('setWalletBalance', res.toNumber() / Math.pow(10, state.rewardToken.decimals)))
+                .then(res => commit('setWalletBalance', res))
                 .catch(err => console.log(err));
         },
         async loadContractsInfo({commit}) {
             const provider = new ethers.providers.JsonRpcProvider(stakingInfo.provider);
-            console.log(provider);
 
             const stakingContract = new ethers.Contract(
                 stakingInfo.address,
@@ -103,16 +107,18 @@ export default createStore({
             }
 
             commit('setStakingStrategies', stakingStrategies);
+        },
+        async loadTokenInfo({commit}) {
+            const provider = new ethers.providers.JsonRpcProvider(rewardTokenInfo.provider);
+            const tokenContract = new ethers.Contract(
+                rewardTokenInfo.address,
+                JSON.stringify(rewardTokenInfo.abi),
+                provider
+            );
+
+            const symbol = await tokenContract.symbol();
+            const decimals = await tokenContract.decimals();
+            commit('setRewardToken', {symbol, decimals});
         }
-        // async web3req({state}) {
-        //     const provider = new ethers.providers.JsonRpcProvider('http://127.0.0.1:8545');
-        //     const owner = new ethers.Wallet('0x0fb5bb3ec79c65923289ec6da8d14fd38812885c2c93e3f4fdf8cb15f3919469', provider);
-        //     const rewardToken = new ethers.Contract(
-        //         state.token.address,
-        //         JSON.stringify(rewardTokenAbi),
-        //         provider
-        //     );
-        //     console.log(await rewardToken.balanceOf(owner.address));
-        // }
     }
 });
