@@ -86,16 +86,18 @@ export default createStore({
                 );
                 const release = await vestingContract.releaseDuration();
                 const cliff = await vestingContract.cliffDuration();
-                const reward = vesting['rewardsPerDay'];
+                const rewardsPerDay = vesting['rewardsPerDay'];
+                const tvl = await stakingContract.totalStaked(id);
 
                 let staking = {
                     id,
+                    tvl: tvl.toNumber(),
                     duration: (cliff.toNumber() + release.toNumber()) / day,
                     vesting: {
                         cliff: cliff.toNumber() / day,
                         release: release.toNumber() / day
                     },
-                    reward: reward.toNumber()
+                    rewardsPerDay: rewardsPerDay.toNumber()
                 };
                 stakingStrategies.push(staking);
             }
