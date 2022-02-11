@@ -1,0 +1,73 @@
+{
+  "contractName": "LinearVesting",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_cliffDurationDays",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_releaseDurationDays",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_startTime",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_allowance",
+          "type": "uint256"
+        }
+      ],
+      "name": "calcVestedAmount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cliffDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "releaseDuration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "address": "0xf038F5F26aa62C761A59608DDd1716BE9550fA5a",
+  "provider": "http://127.0.0.1:8545"
+}
