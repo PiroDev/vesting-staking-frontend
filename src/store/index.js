@@ -70,7 +70,7 @@ export default createStore({
                 .then(res => commit('setWalletBalance', res))
                 .catch(err => console.log(err));
         },
-        async loadContractsInfo({commit}) {
+        async loadContractsInfo({commit, dispatch}) {
             const provider = new ethers.providers.JsonRpcProvider(stakingInfo.provider);
 
             const stakingContract = new ethers.Contract(
@@ -107,6 +107,7 @@ export default createStore({
             }
 
             commit('setStakingStrategies', stakingStrategies);
+            dispatch('loadTokenInfo');
         },
         async loadTokenInfo({commit}) {
             const provider = new ethers.providers.JsonRpcProvider(rewardTokenInfo.provider);

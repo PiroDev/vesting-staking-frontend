@@ -18,7 +18,7 @@
             }}
           </div>
           <div class="text-[#db5f54] font-bold">APY: {{ calcAPY[staking.id - 1] }}</div>
-          <div>Linear vesting with {{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} vesting
+          <div>Linear vesting with {{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} days vesting
             period
           </div>
         </div>
