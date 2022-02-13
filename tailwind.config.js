@@ -13,11 +13,11 @@ module.exports = {
       },
     },
     screens: {
-      'extra-small': '320px',
-      'small': '768px',
-      'medium': '1024px',
-      'big': '1440px',
-      'massive': '1920px'
+      'mobile-sm': '320px',
+      'tablet': '768px',
+      'laptop': '1024px',
+      'laptop-lg': '1440px',
+      'laptop-xl': '1920px'
     },
   },
   plugins: [],

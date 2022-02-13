@@ -1,15 +1,14 @@
 <template>
-  <div class="h-full w-96 flex justify-between items-center bg-white rounded-xl" v-if="isWalletConnected">
-    <div class="w-5/6 flex justify-between items-center">
-      <div class="w-1/2 text-center select-all">{{ slicedUserAddress }}</div>
-      <div class="w-5/12 text-center select-all">{{ userBalance }}</div>
+  <div class="px-3 flex h-full justify-between items-center bg-white rounded-xl" v-if="isWalletConnected">
+    <div class="flex justify-between items-center mr-2">
+      <div class="hidden basis-1/2 text-center select-all">{{ slicedUserAddress }}</div>
+      <div class="text-center whitespace-nowrap">{{ userBalance }}</div>
     </div>
-    <div class="w-1/6 h-2/3 flex justify-center items-center">
+    <div class="flex h-1/2 justify-center items-center">
       <img src="/src/assets/logout.svg" alt="X" class="h-full hover:cursor-pointer" @click="logout">
     </div>
   </div>
-
-  <div class="h-full w-1/3 flex justify-center items-center bg-white rounded-xl hover:cursor-pointer" v-else @click="connectWallet">
+  <div class="px-3 h-full flex justify-center items-center bg-white rounded-xl hover:cursor-pointer" v-else @click="connectWallet">
     Connect Wallet
   </div>
 </template>
@@ -34,7 +33,7 @@ export default {
     },
     userBalance() {
       if (this.isBalanceLoaded === false) {
-        return 'Fetching balance...';
+        return 'Loading...';
       } else {
         const balance = BNToNumstr(this.wallet.balance, this.token.decimals);
         return balance + ' ' + this.token.symbol;
