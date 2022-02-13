@@ -6,7 +6,7 @@
 
   <div class="flex grow px-4 py-8 justify-center items-center bg-main-color-light
               tablet:px-6 laptop:px-36 laptop-lg:px-72 laptop-xl:px-96">
-    <div class="flex grow flex-col p-6 bg-white rounded-3xl shadow-lg">
+    <div class="flex grow flex-col p-6 bg-white rounded-3xl shadow-lg laptop:p-8 laptop-lg:p-10 laptop-xl:p-12">
       <the-staking/>
     </div>
   </div>
