@@ -1,51 +1,57 @@
 <template>
   <div class="flex grow flex-col">
-    <div class="flex items-center mb-5">
-      <div class="basis-5/6 text-3xl font-extrabold">Staking with Vesting</div>
+    <div class="flex items-center mb-5 tablet:mb-10 laptop-xl:mb-16">
+      <div class="basis-5/6 text-2xl font-extrabold tablet:text-3xl laptop:text-4xl laptop-xl:text-5xl">Staking with Vesting</div>
     </div>
-    <div class="flex flex-col justify-around items-center">
+    <div class="flex flex-col justify-around items-center tablet:flex-row">
         <div
             v-for="staking in $store.state.stakingStrategies"
             key="{{staking.id}}"
-            class="w-full mb-3 flex flex-col justify-around rounded-3xl px-5 py-4 shadow-lg select-none hover:cursor-pointer"
+            class="w-full mb-3 flex flex-col rounded-3xl px-5 py-4 shadow-lg select-none hover:cursor-pointer
+                   tablet:mb-0 tablet:mr-4 tablet:basis-[300px] laptop-lg:basis-[320px]"
             :class="{ 'bg-selection-color': isSelected(staking.id) }"
             @click="selectStrategy(staking.id)"
         >
-          <div class="text-2xl font-bold">{{ staking.duration }} Days</div>
-          <div class="text-[#db5f54] font-bold">Daily pool: {{
+          <div class="text-xl font-bold tablet:text-2xl laptop:text-3xl laptop-xl:text-4xl">{{ staking.duration }} Days</div>
+          <div class="text-[#db5f54] font-bold text-base laptop:text-lg laptop-xl:text-xl">Daily pool: {{
               staking.rewardsPerDay + ' ' + tokenSymbol
             }}
           </div>
-          <div class="text-[#db5f54] font-bold">APY: {{ calcAPY[staking.id - 1] }}</div>
-          <div>{{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} days vesting period
+          <div class="text-[#db5f54] font-bold text-base laptop:text-lg laptop-xl:text-xl">APY: {{ calcAPY[staking.id - 1] }}</div>
+          <div class="text-base laptop:text-lg laptop-xl:text-xl">{{ staking.vesting.cliff }} days cliff and {{ staking.vesting.release }} days vesting period
           </div>
         </div>
       </div>
-    <div class="flex flex-col justify-between mt-2 mb-4" v-if="isWalletConnected">
-      <div class="flex items-center mb-2">
-        <input type="text" v-model.number="stake" class="w-full border border-gray-200 pl-2 py-3 rounded-lg focus:outline-none">
+    <div class="flex flex-col justify-between mt-2 mb-4 tablet:mt-10 tablet:mb-10 laptop-xl:mt-14 laptop-xl:mb-10" v-if="isWalletConnected">
+      <div class="flex items-center mb-2 tablet:mb-6">
+        <input type="text" v-model.number="stake" class="w-full border border-gray-200 pl-2 py-3 rounded-lg focus:outline-none
+                                                         text-base laptop:text-lg laptop-xl:text-xl">
       </div>
       <div class="flex items-center">
-        <div>Reward for {{ stakingStrategies[selectedStrategy - 1].duration }} days:</div>
-        <div class="text-[#db5f54] text-lg font-bold ml-2">{{ calcRewardsPerMonth[selectedStrategy - 1] }}</div>
+        <div class="text-base laptop:text-lg laptop-xl:text-xl">Reward for {{ stakingStrategies[selectedStrategy - 1].duration }} days:</div>
+        <div class="text-[#db5f54] text-lg font-bold ml-2 laptop:text-xl laptop-xl:text-2xl">{{ calcRewardsPerMonth[selectedStrategy - 1] }}</div>
       </div>
     </div>
-    <div class="py-2 px-6 mt-8 mb-8 w-full flex items-center border border-gray-200 rounded-xl bg-selection-color" v-else>
+    <div class="py-2 px-6 mt-8 mb-8 w-full flex items-center border border-gray-200 rounded-xl bg-selection-color
+                tablet:py-4" v-else>
       To perform actions on the page, connect your wallet
     </div>
-    <div class="flex flex-col justify-between items-center">
+    <div class="flex flex-col justify-between items-center tablet:flex-row">
       <div
-          class="basis-[56px] mb-4 w-full flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none"
+          class="basis-[56px] mb-4 w-full flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none
+                 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl"
           v-if="isWalletConnected">
         Stake
       </div>
       <div
-          class="basis-[56px] mb-4 w-full flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none"
+          class="basis-[56px] mb-4 w-full flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none
+                 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl"
           v-else @click="connectWallet">
         Connect wallet
       </div>
       <div
-          class="basis-[56px] w-full flex justify-center items-center border border-gray-200 rounded-xl hover:cursor-pointer select-none">
+          class="basis-[56px] w-full flex justify-center items-center border border-gray-200 rounded-xl hover:cursor-pointer select-none
+                 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl">
         View Contract
       </div>
     </div>

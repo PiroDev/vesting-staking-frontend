@@ -1,14 +1,17 @@
 <template>
   <div class="px-3 flex h-full justify-between items-center bg-white rounded-xl" v-if="isWalletConnected">
-    <div class="flex justify-between items-center mr-2">
-      <div class="hidden basis-1/2 text-center select-all">{{ slicedUserAddress }}</div>
-      <div class="text-center whitespace-nowrap">{{ userBalance }}</div>
+    <div class="flex justify-between items-center mr-3 laptop:mr-6">
+      <div class="hidden basis-1/2 text-center text-base select-all mr-3 tablet:block
+                  laptop:text-xl laptop:mr-6">{{ slicedUserAddress }}</div>
+      <div class="text-center whitespace-nowrap
+                  laptop:text-xl">{{ userBalance }}</div>
     </div>
     <div class="flex h-1/2 justify-center items-center">
-      <img src="/src/assets/logout.svg" alt="X" class="h-full hover:cursor-pointer" @click="logout">
+      <img src="/src/assets/logout.svg" alt="quit" class="h-full hover:cursor-pointer" @click="logout">
     </div>
   </div>
-  <div class="px-3 h-full flex justify-center items-center bg-white rounded-xl hover:cursor-pointer" v-else @click="connectWallet">
+  <div class="px-3 h-full flex justify-center items-center bg-white rounded-xl hover:cursor-pointer
+              laptop:text-lg laptop-xl:text-xl" v-else @click="connectWallet">
     Connect Wallet
   </div>
 </template>
