@@ -67,7 +67,5 @@
       "stateMutability": "view",
       "type": "function"
     }
-  ],
-  "address": "0xf038F5F26aa62C761A59608DDd1716BE9550fA5a",
-  "provider": "http://127.0.0.1:8545"
+  ]
 }

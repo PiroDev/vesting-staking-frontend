@@ -22,7 +22,7 @@
           </div>
         </div>
       </div>
-    <div class="flex flex-col justify-between mt-2 mb-4 tablet:mt-10 tablet:mb-10 laptop-xl:mt-14 laptop-xl:mb-10" v-if="isWalletConnected">
+    <div class="flex flex-col justify-between mt-2 mb-4 tablet:mt-10 tablet:mb-10 laptop-xl:mt-14 laptop-xl:mb-10" v-if="isWalletConnected && !isStaking">
       <div class="flex items-center mb-2 tablet:mb-6">
         <input type="text" v-model.number="stake" class="w-full border border-gray-200 pl-2 py-3 rounded-lg focus:outline-none
                                                          text-base laptop:text-lg laptop-xl:text-xl">
@@ -33,8 +33,11 @@
       </div>
     </div>
     <div class="py-2 px-6 mt-8 mb-8 w-full flex items-center border border-gray-200 rounded-xl bg-selection-color
-                tablet:py-4" v-else>
+                tablet:py-4" v-else-if="!isWalletConnected">
       To perform actions on the page, connect your wallet
+    </div>
+    <div v-else>
+      User is staking
     </div>
     <div class="flex flex-col justify-between items-center tablet:flex-row">
       <div
@@ -75,7 +78,8 @@ export default {
     ]),
     ...mapState({
       stakingStrategies: state => state.stakingStrategies,
-      tokenSymbol: state => state.rewardToken.symbol
+      tokenSymbol: state => state.rewardToken.symbol,
+      isStaking: state => state.wallet.isStaking
     }),
     calcAPY() {
       let apys = [];
@@ -133,11 +137,13 @@ export default {
   methods: {
     ...mapActions([
       'connectMetamask',
-      'updateUserBalance'
+      'updateUserBalance',
+      'loadUserStakingInfo'
     ]),
     connectWallet() {
       this.connectMetamask()
-          .then(() => this.updateUserBalance());
+          .then(() => this.updateUserBalance())
+          .then(() => this.loadUserStakingInfo());
     },
     isSelected(id) {
       return this.isWalletConnected && this.selectedStrategy === id;

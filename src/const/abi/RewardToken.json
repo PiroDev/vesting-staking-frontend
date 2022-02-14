@@ -1,7 +1,5 @@
 {
-  "_format": "hh-sol-artifact-1",
   "contractName": "RewardToken",
-  "sourceName": "contracts/RewardToken.sol",
   "abi": [
     {
       "inputs": [],
@@ -348,7 +346,5 @@
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ],
-  "address": "0xf038F5F26aa62C761A59608DDd1716BE9550fA5a",
-  "provider": ""
+  ]
 }
