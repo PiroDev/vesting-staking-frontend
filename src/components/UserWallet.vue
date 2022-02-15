@@ -46,11 +46,13 @@ export default {
     ...mapActions([
         'connectMetamask',
         'updateUserBalance',
-        'logout'
+        'logout',
+        'loadUserStakingInfo'
     ]),
     connectWallet() {
       this.connectMetamask()
-          .then(() => this.updateUserBalance());
+          .then(() => this.updateUserBalance())
+          .then(() => this.loadUserStakingInfo());
     }
   }
 }

@@ -5,6 +5,7 @@ import vestingInfo from '/src/const/abi/LinearVesting.json';
 import stakingInfo from '/src/const/abi/Staking.json';
 import vestingIds from '/src/const/VestingId.js';
 import {provider as providerUrl, contractAddresses} from '/src/const/info.json';
+import {numstrToBN} from "/src/utils/formatting.js";
 
 export default createStore({
     state: () => ({
@@ -18,10 +19,14 @@ export default createStore({
             symbol: null,
             decimals: null
         },
-        stakingStrategies: null
+        stakingStrategies: null,
+        isNetworkConnected: false,
+        metamask: {
+            provider: null
+        }
     }),
     getters: {
-        isWalletConnected: state => state.wallet.address !== null,
+        isWalletConnected: state => state.wallet.address !== null
     },
     mutations: {
         setWalletAddress(state, address) {
@@ -42,14 +47,23 @@ export default createStore({
         },
         setIsUserStaking(state, isStaking) {
             state.wallet.isStaking = isStaking;
+        },
+        setNetworkConnected(state) {
+            state.isNetworkConnected = true;
+        },
+        setMetamaskProvider(state, provider) {
+            state.metamask.provider = () => provider;
         }
     },
     actions: {
-        async connectMetamask({state, commit}) {
+        async connectMetamask({commit}) {
             if (typeof window.ethereum === 'undefined') {
                 console.log('MetaMask is not installed!');
                 return;
             }
+
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            commit('setMetamaskProvider', provider);
 
             return ethereum.request({method: 'eth_requestAccounts'})
                 .then(res => commit('setWalletAddress', res[0]))
@@ -71,9 +85,8 @@ export default createStore({
 
             await dispatch('loadTokenInfo');
 
-            return rewardTokenContract.balanceOf(state.wallet.address)
-                .then(res => commit('setWalletBalance', res))
-                .catch(err => console.log(err));
+            const balance = await rewardTokenContract.balanceOf(state.wallet.address);
+            commit('setWalletBalance', balance);
         },
         async loadContractsInfo({commit, dispatch}) {
             const provider = new ethers.providers.JsonRpcProvider(providerUrl);
@@ -86,30 +99,35 @@ export default createStore({
 
             const stakingStrategies = [];
             const day = 24 * 3600;
-            for (const id of vestingIds) {
-                const vesting = await stakingContract.vestings(id);
-                const vestingContract = new ethers.Contract(
-                    vesting['strategy'],
-                    JSON.stringify(vestingInfo.abi),
-                    provider
-                );
-                console.log(vestingContract);
-                const release = await vestingContract.releaseDuration();
-                const cliff = await vestingContract.cliffDuration();
-                const rewardsPerDay = vesting['rewardsPerDay'];
-                const tvl = await stakingContract.totalStaked(id);
 
-                let staking = {
-                    id,
-                    tvl: tvl.toNumber(),
-                    duration: (cliff.toNumber() + release.toNumber()) / day,
-                    vesting: {
-                        cliff: cliff.toNumber() / day,
-                        release: release.toNumber() / day
-                    },
-                    rewardsPerDay: rewardsPerDay.toNumber()
-                };
-                stakingStrategies.push(staking);
+            try {
+                for (const id of vestingIds) {
+                    const vesting = await stakingContract.vestings(id);
+                    const vestingContract = new ethers.Contract(
+                        vesting['strategy'],
+                        JSON.stringify(vestingInfo.abi),
+                        provider
+                    );
+
+                    const release = await vestingContract.releaseDuration();
+                    const cliff = await vestingContract.cliffDuration();
+                    const rewardsPerDay = vesting['rewardsPerDay'];
+                    const tvl = await stakingContract.totalStaked(id);
+
+                    let staking = {
+                        id,
+                        tvl: tvl,
+                        duration: (cliff.toNumber() + release.toNumber()) / day,
+                        vesting: {
+                            cliff: cliff.toNumber() / day,
+                            release: release.toNumber() / day
+                        },
+                        rewardsPerDay
+                    };
+                    stakingStrategies.push(staking);
+                }
+            } catch (err) {
+                console.log('load contract info err:', err);
             }
 
             commit('setStakingStrategies', stakingStrategies);
@@ -117,31 +135,60 @@ export default createStore({
         },
         async loadTokenInfo({commit}) {
             const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+            await provider.ready;
+            commit('setNetworkConnected');
+
             const tokenContract = new ethers.Contract(
                 contractAddresses.rewardToken,
                 JSON.stringify(rewardTokenInfo.abi),
                 provider
             );
 
-            const symbol = await tokenContract.symbol();
-            const decimals = await tokenContract.decimals();
-            commit('setRewardToken', {symbol, decimals});
+            try {
+                const symbol = await tokenContract.symbol();
+                const decimals = await tokenContract.decimals();
+                commit('setRewardToken', {symbol, decimals});
+            } catch (err) {
+                console.log('load token info err:', err);
+            }
         },
         async loadUserStakingInfo({state, commit}) {
             if (state.wallet.isLoaded === false) {
                 return;
             }
 
-            const provider = new ethers.providers.JsonRpcProvider(providerUrl);
             const stakingContract = new ethers.Contract(
                 contractAddresses.staking,
                 JSON.stringify(stakingInfo.abi),
-                provider
+                state.metamask.provider()
             );
 
             const staker = await stakingContract.stakers(state.wallet.address);
             const isUserStaking = staker.vesting !== 0;
             commit('setIsUserStaking', isUserStaking);
+        },
+        async stake({state, commit, dispatch}, {strategy, stakeSize}) {
+            const signer = await state.metamask.provider().getSigner();
+
+            const stakingContract = new ethers.Contract(
+                contractAddresses.staking,
+                JSON.stringify(stakingInfo.abi),
+                signer
+            );
+
+            const tokenContract = new ethers.Contract(
+                contractAddresses.rewardToken,
+                JSON.stringify(rewardTokenInfo.abi),
+                signer
+            );
+
+
+            stakeSize = numstrToBN(stakeSize.toString());
+
+            await tokenContract.approve(stakingContract.address, stakeSize);
+            await stakingContract.stake(strategy, stakeSize);
+            await dispatch('updateUserBalance');
+            commit('setIsUserStaking', true);
         }
     }
 });
