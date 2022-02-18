@@ -88,13 +88,13 @@
         </div>
         <div class="basis-[56px] mb-4 flex justify-center items-center bg-[#B7C6D8] rounded-xl hover:cursor-pointer select-none
                     tablet:mb-0 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl" v-if="isStaking"
-                    :class="{'opacity-50 hover:cursor-not-allowed': isTxPending}">
+                    @click="onClaimRewardsClick" :class="{'opacity-50 hover:cursor-not-allowed': isTxPending}">
           Claim Rewards
         </div>
       </div>
       <div
           class="basis-[56px] w-full flex justify-center items-center border border-gray-200 rounded-xl hover:cursor-pointer select-none
-                 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl">
+                 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl" @click="hrefContract">
         View Contract
       </div>
     </div>
@@ -103,8 +103,8 @@
 
 <script>
 import {mapActions, mapGetters, mapState} from 'vuex';
-import {BNToNumstr, dateTimeFromUnix, numstrToBN} from "/src/utils/formatting.js";
-import {BigNumber} from "ethers";
+import {BNToNumstr, dateTimeFromUnix, } from '/src/utils/formatting.js';
+import {contractUrl} from '/src/const/info.json';
 
 export default {
   data() {
@@ -252,7 +252,8 @@ export default {
       'updateUserBalance',
       'loadUserStakingInfo',
       'stake',
-      'unstake'
+      'unstake',
+      'claimRewards'
     ]),
     connectWallet() {
       if (this.isTxPending === true) {
@@ -283,6 +284,19 @@ export default {
 
       const amount = this.inputValue;
       this.unstake(amount);
+    },
+    onClaimRewardsClick() {
+      if (this.isTxPending === true) {
+        return;
+      }
+
+      this.claimRewards();
+    },
+    hrefContract() {
+      Object.assign(document.createElement('a'), {
+        target: '_blank',
+        href: contractUrl,
+      }).click();
     }
   }
 }

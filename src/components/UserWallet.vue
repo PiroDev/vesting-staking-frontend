@@ -6,11 +6,13 @@
       <div class="text-center whitespace-nowrap select-none laptop:text-xl">{{ userBalance }}</div>
     </div>
     <div class="flex h-1/2 justify-center items-center">
-      <img src="/src/assets/logout.svg" alt="quit" class="h-full hover:cursor-pointer" @click="logout">
+      <img src="/src/assets/logout.svg" alt="quit" class="h-full hover:cursor-pointer" @click="onLogoutClick"
+           :class="{'opacity-50 hover:cursor-not-allowed': isTxPending}">
     </div>
   </div>
   <div class="px-3 h-full flex justify-center items-center bg-white rounded-xl hover:cursor-pointer
-              laptop:text-lg laptop-xl:text-xl" v-else @click="connectWallet">
+              laptop:text-lg laptop-xl:text-xl" v-else @click="connectWallet"
+              :class="{'opacity-50 hover:cursor-not-allowed': isTxPending}">
     Connect Wallet
   </div>
 </template>
@@ -24,7 +26,8 @@ export default {
     ...mapState({
       wallet: state => state.wallet,
       token: state => state.rewardToken,
-      isBalanceLoaded: state => state.wallet.isLoaded
+      isBalanceLoaded: state => state.wallet.isLoaded,
+      isTxPending: state => state.isTxPending
     }),
     ...mapGetters([
        'isWalletConnected'
@@ -50,9 +53,20 @@ export default {
         'loadUserStakingInfo'
     ]),
     connectWallet() {
+      if (this.isTxPending === true) {
+        return;
+      }
+
       this.connectMetamask()
           .then(() => this.updateUserBalance())
           .then(() => this.loadUserStakingInfo());
+    },
+    onLogoutClick() {
+      if (this.isTxPending === true) {
+        return;
+      }
+
+      this.logout();
     }
   }
 }

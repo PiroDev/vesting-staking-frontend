@@ -1,11 +1,12 @@
 {
     "contractAddresses": {
-        "rewardToken": "0x73511669fd4dE447feD18BB79bAFeAC93aB7F31f",
-        "staking": "0x43ca3D2C94be00692D207C6A1e60D8B325c6f12f",
-        "vesting30Days": "0xB581C9264f59BF0289fA76D61B2D0746dCE3C30D",
-        "vesting60Days": "0xC469e7aE4aD962c30c7111dc580B4adbc7E914DD"
+        "rewardToken": "0x0C13DFE2AaBc40b6CaA9497744AeD3f8f7124026",
+        "staking": "0x2091cb6D3f9BeA1DCf839207e85c933D975d63DD",
+        "vesting30Days": "0xD1AC39735Dda58D9C337cc495dC1396e613E290c",
+        "vesting60Days": "0x26cf4e1410AD71276b2cfb13019c580d0603171c"
     },
     "provider": {
-        "url": "http://127.0.0.1:8545"
-    }
+        "url": "https://ropsten.infura.io/v3/e5bc8d39e7f14ab29c3af815011e15a1"
+    },
+    "contractUrl": "https://ropsten.etherscan.io/address/0x7eba1fda7d95b5aa42a98c36dfb2565cbb6005b8"
 }
