@@ -104,6 +104,7 @@ export default createStore({
             commit('setWalletBalance', balance);
         },
         async loadContractsInfo({commit, dispatch}) {
+            commit('setIsTxPending', true);
             const provider = new ethers.providers.JsonRpcProvider(providerUrl);
 
             const stakingContract = new ethers.Contract(
@@ -147,6 +148,7 @@ export default createStore({
 
             commit('setStakingStrategies', stakingStrategies);
             await dispatch('loadTokenInfo');
+            commit('setIsTxPending', false);
         },
         async loadTokenInfo({commit}) {
             const provider = new ethers.providers.JsonRpcProvider(providerUrl);
@@ -177,6 +179,7 @@ export default createStore({
                 state.metamask.provider()
             );
 
+            commit('setIsTxPending', true);
             const staker = await stakingContract.stakers(state.wallet.address);
             const isUserStaking = staker.vesting !== 0;
             commit('setIsUserStaking', isUserStaking);
@@ -200,6 +203,7 @@ export default createStore({
                 }
                 commit('setStakingVesting', stakingVesting);
             }
+            commit('setIsTxPending', false);
         },
         async stake({state, commit, dispatch}, {strategy, stakeSize}) {
             const signer = await state.metamask.provider().getSigner();
