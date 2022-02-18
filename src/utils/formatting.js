@@ -26,4 +26,17 @@ function BNToNumstrStrict(bn, dec, prec) {
     return [spl[0], ((spl[1] || "") + "0".repeat(prec)).slice(0, prec)].join(".");
 }
 
-export {numstrToBN, BNToNumstr};
+
+function dateTimeFromUnix(timestamp) {
+    const a = new Date(timestamp * 1000);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // const year = a.getFullYear();
+    const month = months[a.getMonth()];
+    const date = a.getDate();
+    const hour = a.getHours();
+    const min = a.getMinutes();
+    // const sec = a.getSeconds();
+    return date + ' ' + month + ', ' + ' ' + hour + ':' + min;
+}
+
+export {numstrToBN, BNToNumstr, dateTimeFromUnix};

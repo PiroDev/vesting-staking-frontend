@@ -7,6 +7,9 @@ import vestingIds from '/src/const/VestingId.js';
 import {provider as providerUrl, contractAddresses} from '/src/const/info.json';
 import {numstrToBN} from "/src/utils/formatting.js";
 
+
+const day = 24 * 3600;
+
 export default createStore({
     state: () => ({
         wallet: {
@@ -20,10 +23,19 @@ export default createStore({
             decimals: null
         },
         stakingStrategies: null,
-        isNetworkConnected: false,
         metamask: {
             provider: null
-        }
+        },
+        stakingVesting: {
+            vestingId: null,
+            startTime: null,
+            endTime: null,
+            initStake: null,
+            currStake: null,
+            claimedRewards: null,
+            couldBeUnstaked: null
+        },
+        isTxPending: false
     }),
     getters: {
         isWalletConnected: state => state.wallet.address !== null
@@ -48,11 +60,14 @@ export default createStore({
         setIsUserStaking(state, isStaking) {
             state.wallet.isStaking = isStaking;
         },
-        setNetworkConnected(state) {
-            state.isNetworkConnected = true;
-        },
         setMetamaskProvider(state, provider) {
             state.metamask.provider = () => provider;
+        },
+        setStakingVesting(state, stakingVesting) {
+            state.stakingVesting = stakingVesting;
+        },
+        setIsTxPending(state, isTxPending) {
+            state.isTxPending = isTxPending;
         }
     },
     actions: {
@@ -69,9 +84,10 @@ export default createStore({
                 .then(res => commit('setWalletAddress', res[0]))
                 .catch(err => console.log(err));
         },
-        async logout({commit}) {
+        logout({commit}) {
             commit('setWalletAddress', null);
             commit('setBalanceToNotLoaded');
+            commit('setIsUserStaking', false);
         },
         async updateUserBalance({state, commit, dispatch}) {
             commit('setBalanceToNotLoaded');
@@ -82,7 +98,6 @@ export default createStore({
                 JSON.stringify(rewardTokenInfo.abi),
                 provider
             );
-
             await dispatch('loadTokenInfo');
 
             const balance = await rewardTokenContract.balanceOf(state.wallet.address);
@@ -98,8 +113,6 @@ export default createStore({
             );
 
             const stakingStrategies = [];
-            const day = 24 * 3600;
-
             try {
                 for (const id of vestingIds) {
                     const vesting = await stakingContract.vestings(id);
@@ -109,10 +122,12 @@ export default createStore({
                         provider
                     );
 
-                    const release = await vestingContract.releaseDuration();
-                    const cliff = await vestingContract.cliffDuration();
-                    const rewardsPerDay = vesting['rewardsPerDay'];
-                    const tvl = await stakingContract.totalStaked(id);
+                    const [release, cliff, rewardsPerDay, tvl] = await Promise.all([
+                        vestingContract.releaseDuration(),
+                        vestingContract.cliffDuration(),
+                        vesting['rewardsPerDay'],
+                        stakingContract.totalStaked(id)
+                    ]);
 
                     let staking = {
                         id,
@@ -131,13 +146,10 @@ export default createStore({
             }
 
             commit('setStakingStrategies', stakingStrategies);
-            dispatch('loadTokenInfo');
+            await dispatch('loadTokenInfo');
         },
         async loadTokenInfo({commit}) {
             const provider = new ethers.providers.JsonRpcProvider(providerUrl);
-            await provider.ready;
-            commit('setNetworkConnected');
-
             const tokenContract = new ethers.Contract(
                 contractAddresses.rewardToken,
                 JSON.stringify(rewardTokenInfo.abi),
@@ -145,14 +157,16 @@ export default createStore({
             );
 
             try {
-                const symbol = await tokenContract.symbol();
-                const decimals = await tokenContract.decimals();
+                const [symbol, decimals] = await Promise.all([
+                    tokenContract.symbol(),
+                    tokenContract.decimals()
+                ]);
                 commit('setRewardToken', {symbol, decimals});
             } catch (err) {
                 console.log('load token info err:', err);
             }
         },
-        async loadUserStakingInfo({state, commit}) {
+        async loadUserStakingInfo({state, commit, dispatch}) {
             if (state.wallet.isLoaded === false) {
                 return;
             }
@@ -166,6 +180,26 @@ export default createStore({
             const staker = await stakingContract.stakers(state.wallet.address);
             const isUserStaking = staker.vesting !== 0;
             commit('setIsUserStaking', isUserStaking);
+
+            if (isUserStaking === true) {
+                await dispatch('loadContractsInfo');
+                const stake = staker.stake;
+                const duration = state.stakingStrategies[staker.vesting - 1].duration;
+                const claimedRewards = await stakingContract.claimedRewards(state.wallet.address);
+                const signer = state.metamask.provider().getSigner();
+                const couldBeUnstaked = await stakingContract.connect(signer).howMuchToClaimIsLeft();
+
+                const stakingVesting = {
+                    startTime: stake.startTime,
+                    endTime: stake.startTime.add(duration * day),
+                    initStake: stake.initialSize,
+                    currStake: stake.currentSize,
+                    claimedRewards,
+                    couldBeUnstaked,
+                    vestingId: staker.vesting
+                }
+                commit('setStakingVesting', stakingVesting);
+            }
         },
         async stake({state, commit, dispatch}, {strategy, stakeSize}) {
             const signer = await state.metamask.provider().getSigner();
@@ -185,10 +219,46 @@ export default createStore({
 
             stakeSize = numstrToBN(stakeSize.toString());
 
-            await tokenContract.approve(stakingContract.address, stakeSize);
-            await stakingContract.stake(strategy, stakeSize);
-            await dispatch('updateUserBalance');
-            commit('setIsUserStaking', true);
+            try {
+                commit('setIsTxPending', true);
+                let tx = await tokenContract.approve(stakingContract.address, stakeSize);
+                await tx.wait();
+                tx = await stakingContract.stake(strategy, stakeSize);
+                await tx.wait();
+
+                await dispatch('updateUserBalance');
+                await dispatch('loadUserStakingInfo');
+
+                commit('setIsUserStaking', true);
+            } catch (err) {
+                console.log(err);
+            } finally {
+                commit('setIsTxPending', false);
+            }
+        },
+        async unstake({state, commit, dispatch}, amount) {
+            const signer = await state.metamask.provider().getSigner();
+
+            const stakingContract = new ethers.Contract(
+                contractAddresses.staking,
+                JSON.stringify(stakingInfo.abi),
+                signer
+            );
+
+            amount = numstrToBN(amount.toString());
+
+            try {
+                commit('setIsTxPending', true);
+                const tx = await stakingContract.unstake(amount);
+                await tx.wait();
+
+                await dispatch('updateUserBalance');
+                await dispatch('loadUserStakingInfo');
+            } catch (err) {
+                console.log(err);
+            } finally {
+                commit('setIsTxPending', false);
+            }
         }
     }
 });

@@ -25,7 +25,7 @@ import {mapActions} from "vuex";
 export default {
   components: {TheStaking, TheHeader, TheFooter},
   async created() {
-    return await this.loadContractsInfo();
+    await this.loadContractsInfo();
   },
   methods: {
     ...mapActions([
