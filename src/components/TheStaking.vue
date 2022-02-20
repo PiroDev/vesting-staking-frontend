@@ -83,7 +83,7 @@
         <div
             class="basis-[56px] mb-4 flex justify-center items-center bg-main-color rounded-xl hover:cursor-pointer select-none
                  tablet:mr-3 tablet:mb-0 tablet:basis-[230px] tablet:h-[56px] laptop:text-lg laptop-xl:text-xl"
-            @click="buttonParams.handler" :class="{'opacity-50 hover:cursor-not-allowed': isTxPending}">
+            @click="buttonParams.handler" :class="{'opacity-50 hover:cursor-not-allowed': isTxPending || !isInputValueValid}">
           {{ buttonParams.text }}
         </div>
         <div class="basis-[56px] mb-4 flex justify-center items-center bg-[#B7C6D8] rounded-xl hover:cursor-pointer select-none
@@ -105,6 +105,7 @@
 import {mapActions, mapGetters, mapState} from 'vuex';
 import {BNToNumstr, dateTimeFromUnix, } from '/src/utils/formatting.js';
 import {contractUrl} from '/src/const/info.json';
+import {BigNumber} from "ethers";
 
 export default {
   data() {
@@ -124,22 +125,28 @@ export default {
       stakingVesting: state => state.stakingVesting,
       isTxPending: state => state.isTxPending
     }),
+    inputValueWei() {
+      try {
+        return BigNumber.from(this.inputValue).mul(1e9).mul(1e9);
+      } catch {
+        return 0;
+      }
+    },
+    isInputValueValid() {
+      return this.inputValueWei > 0;
+    },
     calcAPY() {
       let apys = [];
 
-      if (this.isWalletConnected === false) {
+      if (this.isWalletConnected === false || !this.isInputValueValid) {
         apys = '-'.repeat(this.stakingStrategies.length).split('');
       } else {
         this.stakingStrategies.forEach(staking => {
-          let newTvl = staking.tvl.add(this.inputValue);
-
-          if (newTvl <= 0) {
-            newTvl = 0;
-          }
+          let newTvl = staking.tvl.add(this.inputValueWei);
 
           let apy = null;
           try {
-            apy = BNToNumstr(staking.rewardsPerDay.mul(365).mul(100).div(newTvl), this.token.decimals) + '%';
+            apy = staking.rewardsPerDay.mul(365).mul(100).div(newTvl).toString() + '%';
           } catch {
             apy = '0%';
           }
@@ -153,18 +160,15 @@ export default {
     calcRewardsPerMonth() {
       let rpms = [];
 
-      if (this.isWalletConnected === false) {
+      if (this.isWalletConnected === false || !this.isInputValueValid) {
         rpms = '-'.repeat(this.stakingStrategies.length).split('');
       } else {
         this.stakingStrategies.forEach(staking => {
-          let newTvl = staking.tvl.add(this.inputValue);
-          if (newTvl <= 0) {
-            newTvl = 0;
-          }
+          let newTvl = staking.tvl.add(this.inputValueWei);
 
           let rpm = null;
           try {
-            rpm = BNToNumstr(staking.rewardsPerDay.mul(31).mul(this.inputValue).div(newTvl), this.token.decimals) + ' ' + this.token.symbol;
+            rpm = BNToNumstr(staking.rewardsPerDay.mul(31).mul(this.inputValueWei).div(newTvl), this.token.decimals) + ' ' + this.token.symbol;
           } catch {
             rpm = '0 ' + this.token.symbol;
           }
@@ -271,14 +275,14 @@ export default {
       this.selectedStrategy = id;
     },
     onStakeClick() {
-      if (this.isTxPending === true) {
+      if (this.isTxPending === true || !this.isInputValueValid) {
         return;
       }
 
       this.stake({strategy: this.selectedStrategy, stakeSize: this.inputValue});
     },
     onUnstakeClick() {
-      if (this.isTxPending === true) {
+      if (this.isTxPending === true || !this.isInputValueValid) {
         return;
       }
 

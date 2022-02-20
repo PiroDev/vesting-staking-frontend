@@ -1,9 +1,9 @@
 {
     "contractAddresses": {
-        "rewardToken": "0x0C13DFE2AaBc40b6CaA9497744AeD3f8f7124026",
-        "staking": "0x2091cb6D3f9BeA1DCf839207e85c933D975d63DD",
-        "vesting30Days": "0xD1AC39735Dda58D9C337cc495dC1396e613E290c",
-        "vesting60Days": "0x26cf4e1410AD71276b2cfb13019c580d0603171c"
+        "rewardToken": "0x9fD4Eb23079e5fecaB7Fcfa5F8984808a1904b9c",
+        "staking": "0x3B9175f5Df7307DdE9362a161cC78Df2b0a176A7",
+        "vesting30Days": "0x9829D636300fDa2748a15621De1cBB1b79Dcb755",
+        "vesting60Days": "0x8FeAC36830ab8B5435f79C081c846C70126B4F7D"
     },
     "provider": {
         "url": "https://ropsten.infura.io/v3/e5bc8d39e7f14ab29c3af815011e15a1"
